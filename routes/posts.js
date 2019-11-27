@@ -3,7 +3,7 @@ const verifyToken = require('./verifyToken')
 const Post = require('../model/Post')
 const Joi = require("@hapi/joi")
 
-// List of posts
+// GET List of posts
 router.get('/', verifyToken, async (request, response) => {
     try {
         const posts = await Post.find().limit(10)
@@ -14,12 +14,23 @@ router.get('/', verifyToken, async (request, response) => {
     }
 })
 
-// Specific post by id
+// GET Specific post by id
 router.get('/:postId', verifyToken, async (request, response) => {
     try {
         const post = await Post.findById(request.params.postId)
 
         response.json(post)
+    } catch (error) {
+        response.status(400).send(error)
+    }
+})
+
+// DELETE Specific post by id
+router.delete('/:postId', verifyToken, async (request, response) => {
+    try {
+        const removed = await Post.remove({ _id: request.params.postId })
+
+        response.json(removed)
     } catch (error) {
         response.status(400).send(error)
     }
