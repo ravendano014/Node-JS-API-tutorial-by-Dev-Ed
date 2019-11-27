@@ -4,7 +4,7 @@ const Joi = require('@hapi/joi')
 const bcrypt = require("bcrypt")
 const jwt = require("jsonwebtoken")
 
-// Keep this updated with the model.
+// Keep this updated with the model/form
 const registerSchema = Joi.object({
     username: Joi.string()
         .min(6)
@@ -22,7 +22,7 @@ router.post('/register', async (request, response) => {
     // Validate with Joi
     const { error } = registerSchema.validate(request.body)
     if (error) {
-        return response.status(400).send(error.details[0].message)
+        return response.status(400).json(error)
     }
 
     // Salt and hash
@@ -40,40 +40,25 @@ router.post('/register', async (request, response) => {
     try {
         const savedUser = await user.save()
 
-        // Sending the salt is dangerous. Don't send the entire object.
-
-        response.send({ username: savedUser.username })
+        // Security warning: don't send the entire object as it contains the salt and could be cracked.
+        response.json({ username: savedUser.username })
     } catch (error) {
-        response.status(400).send(error)
+        response.status(400).json(error)
     }
-})
-
-// Not much point of this?
-const loginSchema = Joi.object({
-    username: Joi.string()
-        .min(6)
-        .required(),
-    password: Joi.string()
-        .min(6)
-        .required()
 })
 
 router.post('/login', async (request, response) => {
-    const { error } = loginSchema.validate(request.body)
-    if (error) {
-        return response.status(400).send(error.details[0].message)
-    }
-
     // Checking if the username exists
     const user = await User.findOne({ username: request.body.username })
     if (!user) {
-        return response.status(400).send("Wrong username or password.")
+        // Security warning: Don't tell the client what specifically was wrong.
+        return response.status(400).json({message: "Wrong username or password."})
     }
 
     // Check for matching passwords
     const correctPassword = await bcrypt.compare(request.body.password, user.password)
     if (!correctPassword) {
-        return response.status(400).send("Wrong username or password.")
+        return response.status(400).json({message: "Wrong username or password."})
     }
 
     // OK login. Note that Dev Ed passes the user ID. 
@@ -85,7 +70,7 @@ router.post('/login', async (request, response) => {
     /* The point of JWTs is that they're unique to the properties in the object (: */
     /* Send a header with auth-token for authentication */
 
-    response.header('auth-token', token).send(token)
+    response.header('auth-token', token).json({"auth-token": token})
 })
 
 module.exports = router
