@@ -10,7 +10,7 @@ router.get('/', verifyToken, async (request, response) => {
 
         response.json(posts)
     } catch (error) {
-        response.status(400).send(error)
+        response.status(400).json(error)
     }
 })
 
