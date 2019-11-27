@@ -7,12 +7,8 @@ const app = express()
 dotenv.config()
 
 // Connect to db
-mongoose.connect(
-    process.env.DB_CONNECT,
-    { useNewUrlParser: true, useUnifiedTopology: true },
-    () => {
-        console.log("DB up and running!")
-    })
+mongoose.set('useCreateIndex', true)
+mongoose.connect(process.env.DB_CONNECT, { useNewUrlParser: true, useUnifiedTopology: true })
 
 // Middleware
 app.use(express.json())
@@ -26,4 +22,4 @@ const postRoute = require("./routes/posts")
 app.use('/api/user', authRoute)
 app.use('/api/posts', postRoute)
 
-app.listen(8000, () => console.log('Server up and running!'))
+app.listen(8000)
