@@ -25,6 +25,27 @@ router.get('/:postId', verifyToken, async (request, response) => {
     }
 })
 
+// PATCH A post
+router.patch('/:postId', verifyToken, async (request, response) => {
+    // TODO Joi validation
+
+    try {
+        const post = await Post.updateOne(
+            {
+                _id: request.params.postId
+            },
+            {
+                $set: {title: request.body.title},
+                $set: {text: request.body.text}
+            }
+        )
+
+        response.json(post)
+    } catch (error) {
+        response.status(400).send(error)
+    }
+})
+
 // DELETE Specific post by id
 router.delete('/:postId', verifyToken, async (request, response) => {
     try {
