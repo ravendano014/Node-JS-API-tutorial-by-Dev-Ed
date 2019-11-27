@@ -1,7 +1,6 @@
 const express = require("express")
 const mongoose = require("mongoose")
 const dotenv = require("dotenv")
-const postRoute = require("./routes/posts")
 
 const app = express()
 dotenv.config()
@@ -19,6 +18,7 @@ app.use(express.json())
 
 // Routes
 const authRoute = require("./routes/auth")
+const postRoute = require("./routes/posts")
 
 // Route middlewares
 app.use('/api/user', authRoute)

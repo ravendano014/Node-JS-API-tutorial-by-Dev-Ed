@@ -1,6 +1,7 @@
 const router = require("express").Router()
 const verifyToken = require('./verifyToken')
-const User = require('../model/User')
+const Post = require('../model/Post')
+const Joi = require("@hapi/joi")
 
 router.get('/', verifyToken, (request, response) => {
     response.json({
@@ -9,6 +10,34 @@ router.get('/', verifyToken, (request, response) => {
             description: "Random locked data"
         }
     })
+})
+
+const postSchema = Joi.object({
+    title: Joi.string().min(6).required(),
+    text: Joi.string()
+})
+
+router.post('/create', verifyToken, async (request, response) => {
+    // Validate with Joi
+    const { error } = postSchema.validate(request.body)
+    if (error) {
+        return response.status(400).send(error.details[0].message)
+    }
+
+    // Get new post data
+    const post = new Post({
+        title: request.body.title,
+        text: request.body.text
+    })
+
+    // Send to Mongo and report any errors.
+    try {
+        const savedPost = await post.save()
+
+        response.send({ created: savedPost })
+    } catch (error) {
+        response.status(400).send(error)
+    }
 })
 
 router.get('/whoami', verifyToken, (request, response) => {
@@ -24,7 +53,7 @@ router.get('/whoami-detailed', verifyToken, (request, response) => {
         response.send(object)
     })
 
-    /* Security reminder: don't send back password salts, like above. */ 
+    /* Security reminder: don't send back password salts, like above. */
 })
 
 module.exports = router
