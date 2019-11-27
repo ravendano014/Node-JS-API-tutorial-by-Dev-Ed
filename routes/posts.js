@@ -21,39 +21,7 @@ router.get('/:postId', verifyToken, async (request, response) => {
 
         response.json(post)
     } catch (error) {
-        response.status(400).send(error)
-    }
-})
-
-// PATCH A post by id
-router.patch('/:postId', verifyToken, async (request, response) => {
-    // TODO Joi validation
-
-    try {
-        const post = await Post.updateOne(
-            {
-                _id: request.params.postId
-            },
-            {
-                $set: {title: request.body.title},
-                $set: {text: request.body.text}
-            }
-        )
-
-        response.json(post)
-    } catch (error) {
-        response.status(400).send(error)
-    }
-})
-
-// DELETE Specific post by id
-router.delete('/:postId', verifyToken, async (request, response) => {
-    try {
-        const removed = await Post.remove({ _id: request.params.postId })
-
-        response.json(removed)
-    } catch (error) {
-        response.status(400).send(error)
+        response.status(400).json(error)
     }
 })
 
@@ -62,11 +30,36 @@ const postSchema = Joi.object({
     text: Joi.string()
 })
 
+// PATCH A post by id
+router.patch('/:postId', verifyToken, async (request, response) => {
+    // Validate with Joi
+    const { error } = postSchema.validate(request.body)
+    if (error) {
+        return response.status(400).json(error)
+    }
+
+    try {
+        const post = await Post.updateOne(
+            {
+                _id: request.params.postId
+            },
+            {
+                $set: { title: request.body.title },
+                $set: { text: request.body.text }
+            }
+        )
+
+        response.json(post)
+    } catch (error) {
+        response.status(400).json(error)
+    }
+})
+
 router.post('/create', verifyToken, async (request, response) => {
     // Validate with Joi
     const { error } = postSchema.validate(request.body)
     if (error) {
-        return response.status(400).send(error.details[0].message)
+        return response.status(400).json(error)
     }
 
     // Get new post data
@@ -79,26 +72,21 @@ router.post('/create', verifyToken, async (request, response) => {
     try {
         const savedPost = await post.save()
 
-        response.send({ created: savedPost })
+        response.json({ created: savedPost })
     } catch (error) {
-        response.status(400).send(error)
+        response.status(400).json(error)
     }
 })
 
-router.get('/whoami', verifyToken, (request, response) => {
-    response.send(request.user)
-})
+// DELETE Specific post by id
+router.delete('/:postId', verifyToken, async (request, response) => {
+    try {
+        const removed = await Post.remove({ _id: request.params.postId })
 
-router.get('/whoami-detailed', verifyToken, (request, response) => {
-    const query = { username: request.user.username }
-
-    /* Notice: according to the Mongoose docs, you cannot get a document from a Query. You must use a callback. */
-    // Another notice: it's probably better to store the _id in the JWT, since it's easier to query w. Mongoose.
-    User.findOne(query, (error, object) => {
-        response.send(object)
-    })
-
-    /* Security reminder: don't send back password salts, like above. */
+        response.json(removed)
+    } catch (error) {
+        response.status(400).json(error)
+    }
 })
 
 module.exports = router

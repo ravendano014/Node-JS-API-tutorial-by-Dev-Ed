@@ -3,6 +3,7 @@ const User = require("../model/User")
 const Joi = require('@hapi/joi')
 const bcrypt = require("bcrypt")
 const jwt = require("jsonwebtoken")
+const verifyToken = require('./verifyToken')
 
 // Keep this updated with the model/form
 const registerSchema = Joi.object({
@@ -71,6 +72,19 @@ router.post('/login', async (request, response) => {
     /* Send a header with auth-token for authentication */
 
     response.header('auth-token', token).json({"auth-token": token})
+})
+
+router.get('/whoami', verifyToken, (request, response) => {
+    response.json(request.user)
+})
+
+router.get('/whoami-detailed', verifyToken, (request, response) => {
+    const query = { username: request.user.username }
+
+    // Security warning: don't send the password salt like below.
+    User.findOne(query, (error, object) => {
+        response.json(object)
+    })
 })
 
 module.exports = router
