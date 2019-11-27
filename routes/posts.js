@@ -25,7 +25,7 @@ router.get('/:postId', verifyToken, async (request, response) => {
     }
 })
 
-// PATCH A post
+// PATCH A post by id
 router.patch('/:postId', verifyToken, async (request, response) => {
     // TODO Joi validation
 
