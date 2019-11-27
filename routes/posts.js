@@ -3,13 +3,26 @@ const verifyToken = require('./verifyToken')
 const Post = require('../model/Post')
 const Joi = require("@hapi/joi")
 
-router.get('/', verifyToken, (request, response) => {
-    response.json({
-        posts: {
-            title: "My first post",
-            description: "Random locked data"
-        }
-    })
+// List of posts
+router.get('/', verifyToken, async (request, response) => {
+    try {
+        const posts = await Post.find().limit(10)
+
+        response.json(posts)
+    } catch (error) {
+        response.status(400).send(error)
+    }
+})
+
+// Specific post by id
+router.get('/:postId', verifyToken, async (request, response) => {
+    try {
+        const post = await Post.findById(request.params.postId)
+
+        response.json(post)
+    } catch (error) {
+        response.status(400).send(error)
+    }
 })
 
 const postSchema = Joi.object({
